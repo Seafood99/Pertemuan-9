@@ -1,0 +1,148 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Diagnostics.Eventing.Reader;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace AkademikApp
+{
+    public partial class FrmMahasiswa : Form
+    {
+        //deklarasi collection untuk menampung objek mahasiswa
+        private List<Mahasiswa> listOfMahasiswa = new List<Mahasiswa>();
+
+        // constructor
+        public FrmMahasiswa()
+        {
+            InitializeComponent();
+            InisialisasiListView();
+        }
+
+        private void InisialisasiListView()
+        {
+            lvwMahasiswa.View = View.Details;
+            lvwMahasiswa.FullRowSelect = true;
+            lvwMahasiswa.GridLines = true;
+
+            lvwMahasiswa.Columns.Add("No.", 30, HorizontalAlignment.Center);
+            lvwMahasiswa.Columns.Add("NPM", 91, HorizontalAlignment.Center);
+            lvwMahasiswa.Columns.Add("Nama", 300, HorizontalAlignment.Left);
+            lvwMahasiswa.Columns.Add("Angkatan", 80, HorizontalAlignment.Center);
+        }
+
+        // method event handler untuk merespon event OnCreate,
+        // ketika di panggil dari form entry mahasiswa
+        private void FrmEntry_OnCreate(Mahasiswa mhs)
+        {
+            // tambahkan objek mhs yang baru ke dalam collection
+            listOfMahasiswa.Add(mhs);
+
+            int noUrut = lvwMahasiswa.Items.Count + 1;
+            // tampilkan data mhs yg baru ke list view
+            ListViewItem item = new ListViewItem(noUrut.ToString());
+            item.SubItems.Add(mhs.Npm);
+            item.SubItems.Add(mhs.Nama);
+            item.SubItems.Add(mhs.Angkatan);
+
+            lvwMahasiswa.Items.Add(item);
+        }
+        // method event handler untuk merespon event OnUpdate,
+        // ketika di panggil dari form entry mahasiswa
+        private void FrmEntry_OnUpdate(Mahasiswa mhs)
+        {
+
+            // ambil baris data mhs yang edit
+            int row = lvwMahasiswa.SelectedIndices[0];
+
+            // update informasi mhs di listview
+            ListViewItem itemRow = lvwMahasiswa.Items[row];
+            itemRow.SubItems[1].Text = mhs.Npm;
+            itemRow.SubItems[2].Text = mhs.Nama;
+            itemRow.SubItems[3].Text = mhs.Angkatan;
+        }
+        private void btnTambah_Click_1(object sender, EventArgs e)
+        {
+            // buat objek form entry data mahasiswa
+            FrmEntryMahasiswa frmEntry = new FrmEntryMahasiswa("Tambah Data Mahasiswa");
+
+            // mendaftarkan method event handler untuk merespon event OnCreate
+            frmEntry.OnCreate += FrmEntry_OnCreate;
+
+            // tampilkan form entry mahasiswa
+            frmEntry.ShowDialog();
+        }
+
+        private void btnPerbaiki_Click_1(object sender, EventArgs e)
+        {
+            // cek apakah data dipilih
+            if (lvwMahasiswa.SelectedItems.Count > 0)
+            {
+                // ambil objek mhs yang mau diedit dari collection
+                Mahasiswa mhs = listOfMahasiswa[lvwMahasiswa.SelectedIndices[0]];
+
+                // buat objek form entry data mahasiswa
+                FrmEntryMahasiswa frmEntry = new FrmEntryMahasiswa("Edit Data Mahasiswa", mhs);
+
+                // mendaftarkan method event handler untuk merespon event OnUpdate
+                frmEntry.OnUpdate += FrmEntry_OnUpdate;
+
+                // tampilkan form entry mahasiswa
+                frmEntry.ShowDialog();
+            }
+            else // data belum dipilih
+            {
+                MessageBox.Show("Data belum dipilih", "Peringatan",
+                                   MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+        }
+
+        private void btnHapus_Click_1(object sender, EventArgs e)
+        {
+            if (lvwMahasiswa.SelectedItems.Count > 0)
+            {
+                //ambil objek mhs yang mau dihapus dari collection
+                Mahasiswa obj = listOfMahasiswa[lvwMahasiswa.SelectedIndices[0]];
+
+                string msg = string.Format("Apakah data mahasiswa '{0}' ingin dihapus ?", obj.Nama);
+
+                if (MessageBox.Show(msg, "Konfirmasi", MessageBoxButtons.YesNo,
+                                                       MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    //hapus data mahasiswa dari collection
+                    listOfMahasiswa.Remove(obj);
+
+                    lvwMahasiswa.Items.Clear();
+
+                    //refresh data mhs yang ditampilkan ke list view
+                    foreach (Mahasiswa mhs in listOfMahasiswa)
+                    {
+                        int noUrut = lvwMahasiswa.Items.Count + 1;
+
+                        ListViewItem item = new ListViewItem(noUrut.ToString());
+                        item.SubItems.Add(mhs.Npm);
+                        item.SubItems.Add(mhs.Nama);
+                        item.SubItems.Add(mhs.Angkatan);
+
+                        lvwMahasiswa.Items.Add(item);
+                    }
+                }
+            }
+            else //data belum dipilih
+            {
+                MessageBox.Show("Data belum dipilih", "Peringatan",
+                                                      MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+        }
+
+        private void btnSelesai_Click_1(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+    }
+
+}
